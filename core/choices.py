@@ -1,30 +1,30 @@
 from .constants import EnumPosicao, EnumDesempenho, EnumPreferenciaPe, EnumClassificacao
 
 POSICAO_JOGADOR = (
-    (EnumPosicao.GOLEIRO, u'Goleiro'),
-    (EnumPosicao.ZAGUEIRO, u'Zagueiro'),
-    (EnumPosicao.LATERAL, u'Lateral'),
-    (EnumPosicao.VOLANTE, u'Volante'),
-    (EnumPosicao.MEIA, u'Meia'),
-    (EnumPosicao.ATACANTE, u'Atacante'),
+    (EnumPosicao.GOLEIRO.value, u'Goleiro'),
+    (EnumPosicao.ZAGUEIRO.value, u'Zagueiro'),
+    (EnumPosicao.LATERAL.value, u'Lateral'),
+    (EnumPosicao.VOLANTE.value, u'Volante'),
+    (EnumPosicao.MEIA.value, u'Meia'),
+    (EnumPosicao.ATACANTE.value, u'Atacante'),
 )
 
 PREFERENCIA_PE = (
-    (EnumPreferenciaPe.ESQUERDO, u'Esquerdo'),
-    (EnumPreferenciaPe.DIREITO, u'Direito'),
+    (EnumPreferenciaPe.ESQUERDO.value, u'Esquerdo'),
+    (EnumPreferenciaPe.DIREITO.value, u'Direito'),
 )
 
 DESEMPENHO = (
-    (EnumDesempenho.EXCELENTE, u'Excelente'),
-    (EnumDesempenho.BOM, u'Bom'),
-    (EnumDesempenho.MEDIO, u'Médio'),
-    (EnumDesempenho.EM_DESENVOLVIMENTO, u'Em desenvolvimento'),
-    (EnumDesempenho.PESSIMO, u'Péssimo'),
+    (EnumDesempenho.EXCELENTE.value, u'Excelente'),
+    (EnumDesempenho.BOM.value, u'Bom'),
+    (EnumDesempenho.MEDIO.value, u'Médio'),
+    (EnumDesempenho.EM_DESENVOLVIMENTO.value, u'Em desenvolvimento'),
+    (EnumDesempenho.PESSIMO.value, u'Péssimo'),
 )
 
 CLASSIFICACAO = (
-    (EnumClassificacao.CONMEBOL_LIBERTADORES, u'Conmebol Libertadores'),
-    (EnumClassificacao.CONMEBOL_LIBERTADORES_QUALIFIERS, u'Conmebol Libertadores Qualifiers'),
-    (EnumClassificacao.CONMEBOL_SUDAMERICANA, u'Conmebol Sudamericana'),
-    (EnumClassificacao.REBAIXAMENTO, u'Rebaixamento'),
+    (EnumClassificacao.CONMEBOL_LIBERTADORES.value, u'Conmebol Libertadores'),
+    (EnumClassificacao.CONMEBOL_LIBERTADORES_QUALIFIERS.value, u'Conmebol Libertadores Qualifiers'),
+    (EnumClassificacao.CONMEBOL_SUDAMERICANA.value, u'Conmebol Sudamericana'),
+    (EnumClassificacao.REBAIXAMENTO.value, u'Rebaixamento'),
 )
