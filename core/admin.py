@@ -126,8 +126,8 @@ class EstatisticasJogoAdmin(admin.TabularInline):
 
 class JogadorAdmin(admin.ModelAdmin):
     model = Jogador
-    search_fields = ('nome', 'posicao', 'idade', 'time_nome')
-    list_display = ('nome', 'time_nome', 'posicao')
+    search_fields = ('nome', 'posicao', 'idade',)
+    list_display = ('nome', 'nacionalidade', 'posicao')
     inlines = [
         CarreiraAdmin,
         EstatisticasJogadorAdmin,
@@ -164,18 +164,18 @@ class JogadorAdmin(admin.ModelAdmin):
         ),
     )
 
-    def time_nome(self, obj):
-        if obj in Time.objects.filter(goleiros=obj):
-            return obj.time.nome
-        elif obj in Time.objects.filter(defensores=obj):
-            return obj.time.nome
-        elif obj in Time.objects.filter(meio_campistas=obj):
-            return obj.time.nome
-        elif obj in Time.objects.filter(atacantes=obj):
-            return obj.time.nome
-        return ''
-
-    time_nome.short_description = 'Nome do Time'
+    # def time_nome(self, obj):
+    #     if obj in Time.objects.filter(goleiros=obj):
+    #         return obj.time.nome
+    #     elif obj in Time.objects.filter(defensores=obj):
+    #         return obj.time.nome
+    #     elif obj in Time.objects.filter(meio_campistas=obj):
+    #         return obj.time.nome
+    #     elif obj in Time.objects.filter(atacantes=obj):
+    #         return obj.time.nome
+    #     return ''
+    #
+    # time_nome.short_description = 'Nome do Time'
 
 
 class JogoAdmin(admin.ModelAdmin):

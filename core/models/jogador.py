@@ -19,10 +19,10 @@ class Jogador(models.Model):
         verbose_name="Posição do Jogador",
         choices=POSICAO_JOGADOR,
     )
-    peso = models.IntegerField(
+    peso = models.FloatField(
         verbose_name="Peso",
     )
-    altura = models.IntegerField(
+    altura = models.FloatField(
         verbose_name="Altura",
     )
     preferencia_pe = models.SmallIntegerField(
@@ -30,7 +30,7 @@ class Jogador(models.Model):
         choices=PREFERENCIA_PE,
     )
     avaliacao_desempenho = models.SmallIntegerField(
-        verbose_name="Posição do Jogador",
+        verbose_name="Avaliação de Desempenho",
         choices=DESEMPENHO,
         null=True,
         blank=True
