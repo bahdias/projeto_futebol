@@ -1,4 +1,4 @@
-from .constants import EnumPosicao, EnumDesempenho, EnumPreferenciaPe, EnumClassificacao
+from .constants import EnumPosicao, EnumPreferenciaPe, EnumCartao
 
 POSICAO_JOGADOR = (
     (EnumPosicao.GOLEIRO.value, u'Goleiro'),
@@ -14,17 +14,7 @@ PREFERENCIA_PE = (
     (EnumPreferenciaPe.DIREITO.value, u'Direito'),
 )
 
-DESEMPENHO = (
-    (EnumDesempenho.EXCELENTE.value, u'Excelente'),
-    (EnumDesempenho.BOM.value, u'Bom'),
-    (EnumDesempenho.MEDIO.value, u'Médio'),
-    (EnumDesempenho.EM_DESENVOLVIMENTO.value, u'Em desenvolvimento'),
-    (EnumDesempenho.PESSIMO.value, u'Péssimo'),
-)
-
-CLASSIFICACAO = (
-    (EnumClassificacao.CONMEBOL_LIBERTADORES.value, u'Conmebol Libertadores'),
-    (EnumClassificacao.CONMEBOL_LIBERTADORES_QUALIFIERS.value, u'Conmebol Libertadores Qualifiers'),
-    (EnumClassificacao.CONMEBOL_SUDAMERICANA.value, u'Conmebol Sudamericana'),
-    (EnumClassificacao.REBAIXAMENTO.value, u'Rebaixamento'),
+CARTAO = (
+    (EnumCartao.AMARELO.value, u'Amarelo'),
+    (EnumCartao.VERMELHO.value, u'Vermelho'),
 )

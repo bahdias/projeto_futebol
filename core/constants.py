@@ -15,16 +15,6 @@ class EnumPreferenciaPe(Enum):
     DIREITO = 1
 
 
-class EnumDesempenho(Enum):
-    EXCELENTE = 0
-    BOM = 1
-    MEDIO = 2
-    EM_DESENVOLVIMENTO = 3
-    PESSIMO = 4
-
-
-class EnumClassificacao(Enum):
-    CONMEBOL_LIBERTADORES = 0
-    CONMEBOL_LIBERTADORES_QUALIFIERS = 1
-    CONMEBOL_SUDAMERICANA = 2
-    REBAIXAMENTO = 3
+class EnumCartao(Enum):
+    AMARELO = 0
+    VERMELHO = 1
