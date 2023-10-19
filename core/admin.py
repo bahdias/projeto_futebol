@@ -1,137 +1,20 @@
 from django.contrib import admin
 
-from .models.carreira import Carreira
-from .models.estatisticas_jogador import EstatisticasJogador
-from .models.estatisticas_jogo import EstatisticasJogo
+from .models.cartao_jogador import CartaoJogador
+from .models.cartao_time import CartaoTime
+from .models.competido_por import CompetidoPor
+from .models.gol_jogador import GolJogador
+from .models.gol_time import GolTime
 from .models.jogador import Jogador
 from .models.jogo import Jogo
 from .models.time import Time
-
-
-class CarreiraAdmin(admin.TabularInline):
-    model = Carreira
-    extra = 0
-    fieldsets = (
-        (
-            "CARREIRA PROFISSIONAL",
-            {
-                "fields": (
-                    (
-                        "equipe",
-                        "jogos",
-                        "gols",
-                    ),
-                ),
-            },
-        ),
-    )
-
-
-class EstatisticasJogadorAdmin(admin.TabularInline):
-    model = EstatisticasJogador
-    extra = 0
-    fieldsets = (
-        (
-            "EQUIPE",
-            {
-                "fields": (
-                    (
-                        "equipe",
-                    ),
-                ),
-            },
-        ),
-        (
-            "ESTATISTICAS",
-            {
-                "fields": (
-                    (
-                        "jogos_disputados",
-                        "partidas_titular",
-                    ),
-                    (
-                        "assistencia",
-                        "impedimentos",
-                        "escanteios",
-                    ),
-                )
-            },
-        ),
-        (
-            "TEMPOS",
-            {
-                "fields": (
-                    (
-                        "minutos_jogados",
-                        "minutos_jogados_gol",
-                    ),
-                )
-            },
-        ),
-        (
-            "GOLS",
-            {
-                "fields": (
-                    (
-                        "gols",
-                        "gols_cabeca",
-                        "gols_penalti",
-                    ),
-                    (
-                        "chutes_gol",
-                        "chutes_fora",
-                    ),
-                )
-            },
-        ),
-        (
-            "CARTÕES",
-            {
-                "fields": (
-                    (
-                        "cartao_vermelho",
-                        "cartao_amarelo",
-                    ),
-                ),
-            },
-        ),
-    )
-
-
-class EstatisticasJogoAdmin(admin.TabularInline):
-    model = EstatisticasJogo
-    extra = 0
-    fieldsets = (
-        (
-            "ESTATISTICAS",
-            {
-                "fields": (
-                    (
-                        "posse_de_bola",
-                        "finalizacoes",
-                        "finalizacoes_gol",
-                        "cobranca_lateral",
-                    ),
-                    (
-                        "escanteios",
-                        "faltas",
-                        "impedimentos",
-                        "defesas",
-                    ),
-                )
-            },
-        ),
-    )
+from .models.torneio import Torneio
 
 
 class JogadorAdmin(admin.ModelAdmin):
     model = Jogador
     search_fields = ('nome', 'posicao', 'idade',)
     list_display = ('nome', 'nacionalidade', 'posicao')
-    inlines = [
-        CarreiraAdmin,
-        EstatisticasJogadorAdmin,
-    ]
 
     fieldsets = (
         (
@@ -140,8 +23,11 @@ class JogadorAdmin(admin.ModelAdmin):
                 "fields": (
                     (
                         "nome",
-                        "idade",
                         "nacionalidade",
+                    ),
+                    (
+                        "idade",
+                        "dt_nascimento"
                     ),
                     (
                         "peso",
@@ -155,36 +41,21 @@ class JogadorAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "DESEMPENHO",
+            "INFORMAÇÕES DO TIME",
             {
                 "fields": (
-                    "avaliacao_desempenho",
+                    "time",
+                    "numero_camisa",
                 ),
             },
         ),
     )
 
-    # def time_nome(self, obj):
-    #     if obj in Time.objects.filter(goleiros=obj):
-    #         return obj.time.nome
-    #     elif obj in Time.objects.filter(defensores=obj):
-    #         return obj.time.nome
-    #     elif obj in Time.objects.filter(meio_campistas=obj):
-    #         return obj.time.nome
-    #     elif obj in Time.objects.filter(atacantes=obj):
-    #         return obj.time.nome
-    #     return ''
-    #
-    # time_nome.short_description = 'Nome do Time'
-
 
 class JogoAdmin(admin.ModelAdmin):
     model = Jogo
-    search_fields = ('local', 'equipe_casa__nome')
-    list_display = ('equipe_casa_nome', 'equipe_visitante_nome', 'local', 'data_partida')
-    inlines = [
-        EstatisticasJogoAdmin,
-    ]
+    search_fields = ('local', 'time_casa__nome')
+    list_display = ('time_casa_nome', 'time_visitante_nome', 'data_partida')
 
     fieldsets = (
         (
@@ -195,47 +66,40 @@ class JogoAdmin(admin.ModelAdmin):
                         "data_partida",
                     ),
                     (
-                        "equipe_casa",
-                        "placar_casa",
-                    ),
-                    (
-                        "equipe_visitante",
-                        "placar_visitante",
-                    ),
-                    (
-                        "local",
+                        "time_casa",
+                        "time_visitante",
                     ),
                 ),
             },
         ),
         (
-            "DADOS DO JOGO",
+            "SEDE",
             {
                 "fields": (
                     (
-                        "arbitro",
-                        "tempo_jogo",
+                        "torneio",
+                        "estadio",
                     ),
                 ),
             },
         ),
     )
 
-    def equipe_casa_nome(self, obj):
-        return obj.equipe_casa.nome if obj.equipe_casa else ''
+    def time_casa_nome(self, obj):
+        return obj.time_casa.nome if obj.time_casa else ''
 
-    equipe_casa_nome.short_description = 'Nome da Equipe da Casa'
+    time_casa_nome.short_description = 'Nome da Equipe da Casa'
 
-    def equipe_visitante_nome(self, obj):
-        return obj.equipe_visitante.nome if obj.equipe_visitante else ''
+    def time_visitante_nome(self, obj):
+        return obj.time_visitante.nome if obj.time_visitante else ''
 
-    equipe_visitante_nome.short_description = 'Nome da Equipe Visitante'
+    time_visitante_nome.short_description = 'Nome da Equipe Visitante'
 
 
 class TimeAdmin(admin.ModelAdmin):
     model = Time
-    search_fields = ('nome', 'sigla', 'estadio', 'cidade')
-    list_display = ('nome', 'sigla', 'cidade', 'pontos')
+    search_fields = ('nome', 'abreviacao', 'cidade')
+    list_display = ('nome', 'abreviacao', 'cidade')
 
     fieldsets = (
         (
@@ -244,12 +108,11 @@ class TimeAdmin(admin.ModelAdmin):
                 "fields": (
                     (
                         "nome",
-                        "sigla",
-                        "cidade",
+                        "abreviacao",
                     ),
                     (
+                        "cidade",
                         "fundacao",
-                        "estadio",
                     ),
                 ),
             },
@@ -263,27 +126,197 @@ class TimeAdmin(admin.ModelAdmin):
                         "escudo",
                     ),
                     (
-                        "cores",
                         "anexado_em"
                     ),
                 ),
             },
         ),
         (
-            "CLASSIFICAÇÃO",
+            "TÉCNICO",
             {
                 "fields": (
                     (
-                        "classificacao",
-                        "pontos"
+                        "tecnico",
                     ),
                 ),
             },
         ),
     )
-    filter_horizontal = ('jogadores',)
+
+
+class TorneioAdmin(admin.ModelAdmin):
+    model = Torneio
+    search_fields = ('nome', 'ano')
+    list_display = ('nome', 'ano')
+
+    fieldsets = (
+        (
+            "DADOS DO TORNEIO",
+            {
+                "fields": (
+                    (
+                        "nome",
+                        "ano",
+                    ),
+                ),
+            },
+        ),
+    )
+
+
+class GolTimeAdmin(admin.ModelAdmin):
+    model = GolTime
+    search_fields = ('time', 'tempo')
+    list_display = ('time', 'tempo', 'contra', 'marcado', 'sofrido')
+
+    fieldsets = (
+        (
+            "DADOS DO GOL",
+            {
+                "fields": (
+                    (
+                        "time",
+                        "tempo",
+                    ),
+                ),
+            },
+        ),
+        (
+            "INFORMAÇÕES",
+            {
+                "fields": (
+                    (
+                        "contra",
+                        "marcado",
+                        "sofrido",
+                    ),
+                ),
+            },
+        ),
+    )
+
+
+class GolJogadorAdmin(admin.ModelAdmin):
+    model = GolJogador
+    search_fields = ('jogador', 'tempo')
+    list_display = ('jogador', 'tempo', 'contra', 'marcado', 'assistido')
+
+    fieldsets = (
+        (
+            "DADOS DO GOL",
+            {
+                "fields": (
+                    (
+                        "jogador",
+                        "tempo",
+                    ),
+                ),
+            },
+        ),
+        (
+            "INFORMAÇÕES",
+            {
+                "fields": (
+                    (
+                        "contra",
+                        "marcado",
+                        "assistido",
+                    ),
+                ),
+            },
+        ),
+    )
+
+
+class CompetidoPorAdmin(admin.ModelAdmin):
+    model = CompetidoPor
+    search_fields = ('time', 'torneio')
+    list_display = ('time', 'torneio', 'vitorias', 'derrotas', 'empates', 'pontuacao')
+
+    fieldsets = (
+        (
+            "DADOS DO TORNEIO",
+            {
+                "fields": (
+                    (
+                        "time",
+                        "torneio",
+                    ),
+                    (
+                        "vitorias",
+                        "derrotas",
+                        "empates",
+                    ),
+                    (
+                        "gols_marcados",
+                        "gols_sofridos",
+                        "saldo_gols",
+                    ),
+                    (
+                        "cartao_vermelho",
+                        "cartao_amarelo",
+                        "pontuacao",
+                    ),
+                ),
+            },
+        ),
+    )
+
+
+class CartaoTimeAdmin(admin.ModelAdmin):
+    model = CartaoTime
+    search_fields = ('time', 'jogo')
+    list_display = ('time', 'jogo', 'tempo', 'tipo')
+
+    fieldsets = (
+        (
+            "DADOS DO CARTÃO",
+            {
+                "fields": (
+                    (
+                        "time",
+                        "jogo",
+                    ),
+                    (
+                        "tempo",
+                        "tipo",
+                    ),
+                ),
+            },
+        ),
+    )
+
+
+class CartaoJogadorAdmin(admin.ModelAdmin):
+    model = CartaoJogador
+    search_fields = ('jogador', 'jogo')
+    list_display = ('jogador', 'jogo', 'tempo', 'tipo')
+
+    fieldsets = (
+        (
+            "DADOS DO CARTÃO",
+            {
+                "fields": (
+                    (
+                        "jogador",
+                        "jogo",
+                    ),
+                    (
+                        "tempo",
+                        "tipo",
+                    ),
+                ),
+            },
+        ),
+    )
 
 
 admin.site.register(Jogador, JogadorAdmin)
 admin.site.register(Time, TimeAdmin)
 admin.site.register(Jogo, JogoAdmin)
+admin.site.register(GolTime, GolTimeAdmin)
+admin.site.register(GolJogador, GolJogadorAdmin)
+admin.site.register(CartaoTime, CartaoTimeAdmin)
+admin.site.register(CartaoJogador, CartaoJogadorAdmin)
+admin.site.register(CompetidoPor, CompetidoPorAdmin)
+admin.site.register(Torneio, TorneioAdmin)

@@ -1,17 +1,18 @@
 from django.db import models
 
-from .jogador import Jogador
-from ..choices import CLASSIFICACAO
-
 
 class Time(models.Model):
     nome = models.CharField(
         verbose_name="Nome da Equipe",
-        max_length=200
+        max_length=200,
+        null=False,
+        blank=False
     )
-    sigla = models.CharField(
-        verbose_name="Sigla da Equipe",
-        max_length=200
+    abreviacao = models.CharField(
+        verbose_name="Sigla/Abreviação da Equipe",
+        max_length=200,
+        null=False,
+        blank=False
     )
     fundacao = models.DateField(
         verbose_name='Fundado em',
@@ -20,15 +21,6 @@ class Time(models.Model):
     )
     cidade = models.CharField(
         verbose_name="Cidade sede da equipe",
-        max_length=200
-    )
-    estadio = models.CharField(
-        verbose_name="Estádio",
-        max_length=200,
-        help_text='Estádio em que a equipe joga'
-    )
-    cores = models.CharField(
-        verbose_name="Cores da Equipe",
         max_length=200
     )
     escudo_url = models.URLField(
@@ -47,24 +39,13 @@ class Time(models.Model):
         null=True,
         blank=True
     )
-    jogadores = models.ManyToManyField(
-        Jogador,
-        verbose_name='Goleiros',
-    )
-    treinador = models.CharField(
-        verbose_name="Treinador da Equipe",
+    tecnico = models.CharField(
+        verbose_name="Técnico da Equipe",
         max_length=200
-    )
-    classificacao = models.SmallIntegerField(
-        verbose_name="Classificação",
-        choices=CLASSIFICACAO,
-    )
-    pontos = models.IntegerField(
-        verbose_name="Pontuação",
     )
 
     def __str__(self):
-        return f'{self.nome} - {self.sigla}'
+        return f'{self.nome} - {self.abreviacao}'
 
     class Meta:
         verbose_name = u'Time'
