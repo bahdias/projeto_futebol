@@ -8,7 +8,7 @@ class Torneio(models.Model):
         null=False,
         blank=False
     )
-    ano = models.DateTimeField(
+    ano = models.DateField(
         verbose_name="Ano do Torneio",
         null=False,
         blank=True,

@@ -1,3 +1,4 @@
+from colorfield.fields import ColorField
 from django.db import models
 
 
@@ -43,6 +44,8 @@ class Time(models.Model):
         verbose_name="Técnico da Equipe",
         max_length=200
     )
+    primeira_cor = ColorField()
+    segunda_cor = ColorField()
 
     def __str__(self):
         return f'{self.nome} - {self.abreviacao}'

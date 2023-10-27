@@ -1,7 +1,5 @@
 from django.contrib import admin
-
-from .models.cartao_jogador import CartaoJogador
-from .models.cartao_time import CartaoTime
+from .models.cartao import Cartao
 from .models.competido_por import CompetidoPor
 from .models.gol_jogador import GolJogador
 from .models.gol_time import GolTime
@@ -66,19 +64,12 @@ class JogoAdmin(admin.ModelAdmin):
                         "data_partida",
                     ),
                     (
-                        "time_casa",
-                        "time_visitante",
-                    ),
-                ),
-            },
-        ),
-        (
-            "SEDE",
-            {
-                "fields": (
-                    (
                         "torneio",
                         "estadio",
+                    ),
+                    (
+                        "time_casa",
+                        "time_visitante",
                     ),
                 ),
             },
@@ -127,6 +118,10 @@ class TimeAdmin(admin.ModelAdmin):
                     ),
                     (
                         "anexado_em"
+                    ),
+                    (
+                        "primeira_cor",
+                        "segunda_cor"
                     ),
                 ),
             },
@@ -253,8 +248,7 @@ class CompetidoPorAdmin(admin.ModelAdmin):
                         "saldo_gols",
                     ),
                     (
-                        "cartao_vermelho",
-                        "cartao_amarelo",
+                        "cartao",
                         "pontuacao",
                     ),
                 ),
@@ -263,47 +257,26 @@ class CompetidoPorAdmin(admin.ModelAdmin):
     )
 
 
-class CartaoTimeAdmin(admin.ModelAdmin):
-    model = CartaoTime
-    search_fields = ('time', 'jogo')
-    list_display = ('time', 'jogo', 'tempo', 'tipo')
+class CartaoAdmin(admin.ModelAdmin):
+    model = Cartao
+    search_fields = ('jogo',)
+    list_display = ('jogo', 'tempo', 'tipo')
 
     fieldsets = (
         (
             "DADOS DO CARTÃO",
             {
                 "fields": (
+                    (
+                        "jogo",
+                    ),
+                    (
+                        "tempo",
+                        "tipo",
+                    ),
                     (
                         "time",
-                        "jogo",
-                    ),
-                    (
-                        "tempo",
-                        "tipo",
-                    ),
-                ),
-            },
-        ),
-    )
-
-
-class CartaoJogadorAdmin(admin.ModelAdmin):
-    model = CartaoJogador
-    search_fields = ('jogador', 'jogo')
-    list_display = ('jogador', 'jogo', 'tempo', 'tipo')
-
-    fieldsets = (
-        (
-            "DADOS DO CARTÃO",
-            {
-                "fields": (
-                    (
                         "jogador",
-                        "jogo",
-                    ),
-                    (
-                        "tempo",
-                        "tipo",
                     ),
                 ),
             },
@@ -316,7 +289,7 @@ admin.site.register(Time, TimeAdmin)
 admin.site.register(Jogo, JogoAdmin)
 admin.site.register(GolTime, GolTimeAdmin)
 admin.site.register(GolJogador, GolJogadorAdmin)
-admin.site.register(CartaoTime, CartaoTimeAdmin)
-admin.site.register(CartaoJogador, CartaoJogadorAdmin)
+admin.site.register(Cartao, CartaoAdmin)
+# admin.site.register(CartaoJogador, CartaoJogadorAdmin)
 admin.site.register(CompetidoPor, CompetidoPorAdmin)
 admin.site.register(Torneio, TorneioAdmin)
