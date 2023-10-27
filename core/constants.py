@@ -18,3 +18,8 @@ class EnumPreferenciaPe(Enum):
 class EnumCartao(Enum):
     AMARELO = 0
     VERMELHO = 1
+
+
+class EnumEntidade(Enum):
+    JOGADOR = 0
+    TIME = 1

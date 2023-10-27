@@ -1,4 +1,4 @@
-from .constants import EnumPosicao, EnumPreferenciaPe, EnumCartao
+from .constants import EnumPosicao, EnumPreferenciaPe, EnumCartao, EnumEntidade
 
 POSICAO_JOGADOR = (
     (EnumPosicao.GOLEIRO.value, u'Goleiro'),
@@ -17,4 +17,9 @@ PREFERENCIA_PE = (
 CARTAO = (
     (EnumCartao.AMARELO.value, u'Amarelo'),
     (EnumCartao.VERMELHO.value, u'Vermelho'),
+)
+
+ENTIDADE = (
+    (EnumEntidade.JOGADOR.value, u'Jogador'),
+    (EnumEntidade.TIME.value, u'Time'),
 )

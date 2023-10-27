@@ -1,5 +1,6 @@
 from django.db import models
 
+from .cartao import Cartao
 from .time import Time
 from .torneio import Torneio
 
@@ -36,11 +37,11 @@ class CompetidoPor(models.Model):
     gols_sofridos = models.IntegerField(
         verbose_name="Gols Sofridos",
     )
-    cartao_vermelho = models.IntegerField(
-        verbose_name="Cartão Vermelho",
-    )
-    cartao_amarelo = models.IntegerField(
-        verbose_name="Cartão Amarelo",
+    cartao = models.ForeignKey(
+        Cartao,
+        verbose_name="Cartao",
+        on_delete=models.CASCADE,
+        related_name='cartao',
     )
     saldo_gols = models.IntegerField(
         verbose_name="Saldo de Gols",
