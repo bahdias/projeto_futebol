@@ -2,6 +2,7 @@ from colorfield.fields import ColorField
 from django.db import models
 
 
+
 class Time(models.Model):
     nome = models.CharField(
         verbose_name="Nome da Equipe",
@@ -20,9 +21,13 @@ class Time(models.Model):
         null=True,
         blank=True
     )
-    cidade = models.CharField(
-        verbose_name="Cidade sede da equipe",
+    estado = models.CharField(
+        verbose_name="Estado da equipe",
         max_length=200
+    )
+    pais = models.CharField(
+        verbose_name="País da equipe",
+        max_length=2,
     )
     escudo_url = models.URLField(
         verbose_name='URL do Escudo',
@@ -30,25 +35,24 @@ class Time(models.Model):
         null=True,
         blank=True
     )
-    escudo = models.FileField(
-        verbose_name='Escudo',
-        null=True, blank=True,
-        upload_to='cliente'
-    )
-    anexado_em = models.DateField(
-        verbose_name='Anexado em',
-        null=True,
-        blank=True
-    )
     tecnico = models.CharField(
         verbose_name="Técnico da Equipe",
         max_length=200
     )
-    primeira_cor = ColorField()
-    segunda_cor = ColorField()
+    cor_primaria = ColorField()
+    cor_secundaria = ColorField()
 
     def __str__(self):
         return f'{self.nome} - {self.abreviacao}'
+
+    def save(self, *args, **kwargs):
+        self.estado = self.estado.upper()
+        self.pais = self.pais.upper()
+        self.abreviacao = self.abreviacao.upper()
+        super(Time, self).save(*args, **kwargs)
+
+    def get_nome(self):
+        return self.abreviacao
 
     class Meta:
         verbose_name = u'Time'

@@ -1,10 +1,14 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from ..constants import EnumCartao
+from django.core.exceptions import ValidationError
 
+from .competido_por import CompetidoPor
 from .jogador import Jogador
-from ..choices import CARTAO, ENTIDADE
 from .jogo import Jogo
+from ..choices import CARTAO
 from .time import Time
-from ..constants import EnumEntidade
 
 
 class Cartao(models.Model):
@@ -13,8 +17,8 @@ class Cartao(models.Model):
         verbose_name="Time",
         on_delete=models.CASCADE,
         related_name='time_cartao',
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
         default=None
     )
     jogador = models.ForeignKey(
@@ -25,14 +29,6 @@ class Cartao(models.Model):
         null=True,
         blank=True,
         default=None
-    )
-    jogo = models.ForeignKey(
-        Jogo,
-        verbose_name="Jogo",
-        on_delete=models.CASCADE,
-        related_name='jogo_cartao_time',
-        null=False,
-        blank=False
     )
     tempo = models.DateTimeField(
         verbose_name="Tempo em que registrou",
@@ -45,19 +41,57 @@ class Cartao(models.Model):
         null=False,
         blank=False
     )
+    jogo = models.ForeignKey(
+        Jogo,
+        verbose_name="Jogo",
+        on_delete=models.CASCADE,
+        related_name='cartao_jogo',
+        null=False,
+        blank=False
+    )
 
-    def save(self, *args, **kwargs):
-        if self is not None:
-            if self.time is not None:
+    def clean(self):
+        if self.time and self.jogador:
+            if self.jogador.time.nome != self.time.nome:
                 self.jogador = None
-            if self.jogador is not None:
-                self.time = None
-        super().save(*args, **kwargs)
+                raise ValidationError("O Jogador selecionado não é integrante do time selecionado.")
+
+    def delete(self, using=None, keep_parents=False):
+        competido_por, _ = CompetidoPor.objects.update_or_create(time=self.time)
+        if competido_por:
+            if self.tipo is EnumCartao.AMARELO.value:
+                competido_por.cartao_amarelo -= Cartao.objects.filter(jogo=self.jogo,
+                                                                      time=self.time,
+                                                                      tipo=self.tipo).count()
+            elif self.tipo is EnumCartao.VERMELHO.value:
+                competido_por.cartao_vermelho -= Cartao.objects.filter(jogo=self.jogo,
+                                                                       time=self.time,
+                                                                       tipo=self.tipo).count()
+            competido_por.save()
+
+        super(Cartao, self).delete(using, keep_parents)
 
     def __str__(self):
         return f'{self.time} em {self.jogo}'
 
     class Meta:
-        verbose_name = u'Cartão do Time'
-        verbose_name_plural = u'Cartões do Time'
+        verbose_name = u'Cartão'
+        verbose_name_plural = u'Cartões'
         app_label = 'core'
+
+
+@receiver(post_save, sender=Cartao)
+def atualizar_estatisticas_com_gol(sender, instance, created, **kwargs):
+    try:
+        if created:
+            competido_por, _ = CompetidoPor.objects.update_or_create(time=instance.time, torneio=instance.jogo.torneio)
+            if competido_por:
+                competido_por.cartao_vermelho += sender.objects.filter(jogo=instance.jogo,
+                                                                       time=instance.time,
+                                                                       tipo=EnumCartao.VERMELHO.value).count()
+                competido_por.cartao_amarelo += sender.objects.filter(jogo=instance.jogo,
+                                                                      time=instance.time,
+                                                                      tipo=EnumCartao.AMARELO.value).count()
+                competido_por.save()
+    except Exception as e:
+        print(e)

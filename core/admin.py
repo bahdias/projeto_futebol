@@ -1,8 +1,7 @@
 from django.contrib import admin
 from .models.cartao import Cartao
 from .models.competido_por import CompetidoPor
-from .models.gol_jogador import GolJogador
-from .models.gol_time import GolTime
+from .models.gol import Gol
 from .models.jogador import Jogador
 from .models.jogo import Jogo
 from .models.time import Time
@@ -12,7 +11,10 @@ from .models.torneio import Torneio
 class JogadorAdmin(admin.ModelAdmin):
     model = Jogador
     search_fields = ('nome', 'posicao', 'idade',)
-    list_display = ('nome', 'nacionalidade', 'posicao')
+    list_display = ('nome', 'nacionalidade', 'posicao', 'time_nome')
+    readonly_fields = (
+        'idade',
+    )
 
     fieldsets = (
         (
@@ -24,8 +26,8 @@ class JogadorAdmin(admin.ModelAdmin):
                         "nacionalidade",
                     ),
                     (
+                        "dt_nascimento",
                         "idade",
-                        "dt_nascimento"
                     ),
                     (
                         "peso",
@@ -49,11 +51,53 @@ class JogadorAdmin(admin.ModelAdmin):
         ),
     )
 
+    def time_nome(self, obj):
+        return obj.time.nome if obj.time else ''
+
+    time_nome.short_description = 'Nome do Time'
+
+
+class CartaoInline(admin.TabularInline):
+    model = Cartao
+    extra = 0
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        jogo_id = request.resolver_match.kwargs['object_id']
+        jogo = Jogo.objects.get(pk=jogo_id)
+        if db_field.name == "jogador":
+            kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
+        elif db_field.name == "time":
+            kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+class GolInline(admin.TabularInline):
+    model = Gol
+    extra = 0
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        jogo_id = request.resolver_match.kwargs['object_id']
+        jogo = Jogo.objects.get(pk=jogo_id)
+        if db_field.name == "jogador":
+            kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
+        elif db_field.name in ("time_marcou", "time_sofreu"):
+            if db_field.name == "time_marcou":
+                kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
+            elif db_field.name == "time_sofreu":
+                kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
+        elif db_field.name == "assistido":
+            kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class JogoAdmin(admin.ModelAdmin):
     model = Jogo
-    search_fields = ('local', 'time_casa__nome')
-    list_display = ('time_casa_nome', 'time_visitante_nome', 'data_partida')
+    search_fields = ('local', 'time_casa_nome')
+    list_display = ('time_casa_nome', 'time_visitante_nome', 'data_inicio', 'data_final')
+    inlines = [
+        GolInline,
+        CartaoInline
+    ]
 
     fieldsets = (
         (
@@ -61,7 +105,8 @@ class JogoAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     (
-                        "data_partida",
+                        "data_inicio",
+                        "data_final",
                     ),
                     (
                         "torneio",
@@ -89,8 +134,8 @@ class JogoAdmin(admin.ModelAdmin):
 
 class TimeAdmin(admin.ModelAdmin):
     model = Time
-    search_fields = ('nome', 'abreviacao', 'cidade')
-    list_display = ('nome', 'abreviacao', 'cidade')
+    search_fields = ('nome', 'abreviacao', 'estado', 'pais')
+    list_display = ('nome', 'abreviacao', 'pais',)
 
     fieldsets = (
         (
@@ -102,7 +147,8 @@ class TimeAdmin(admin.ModelAdmin):
                         "abreviacao",
                     ),
                     (
-                        "cidade",
+                        "estado",
+                        "pais",
                         "fundacao",
                     ),
                 ),
@@ -114,14 +160,10 @@ class TimeAdmin(admin.ModelAdmin):
                 "fields": (
                     (
                         "escudo_url",
-                        "escudo",
                     ),
                     (
-                        "anexado_em"
-                    ),
-                    (
-                        "primeira_cor",
-                        "segunda_cor"
+                        "cor_primaria",
+                        "cor_secundaria"
                     ),
                 ),
             },
@@ -141,8 +183,8 @@ class TimeAdmin(admin.ModelAdmin):
 
 class TorneioAdmin(admin.ModelAdmin):
     model = Torneio
-    search_fields = ('nome', 'ano')
-    list_display = ('nome', 'ano')
+    search_fields = ('nome', 'data')
+    list_display = ('nome', 'data')
 
     fieldsets = (
         (
@@ -151,71 +193,7 @@ class TorneioAdmin(admin.ModelAdmin):
                 "fields": (
                     (
                         "nome",
-                        "ano",
-                    ),
-                ),
-            },
-        ),
-    )
-
-
-class GolTimeAdmin(admin.ModelAdmin):
-    model = GolTime
-    search_fields = ('time', 'tempo')
-    list_display = ('time', 'tempo', 'contra', 'marcado', 'sofrido')
-
-    fieldsets = (
-        (
-            "DADOS DO GOL",
-            {
-                "fields": (
-                    (
-                        "time",
-                        "tempo",
-                    ),
-                ),
-            },
-        ),
-        (
-            "INFORMAÇÕES",
-            {
-                "fields": (
-                    (
-                        "contra",
-                        "marcado",
-                        "sofrido",
-                    ),
-                ),
-            },
-        ),
-    )
-
-
-class GolJogadorAdmin(admin.ModelAdmin):
-    model = GolJogador
-    search_fields = ('jogador', 'tempo')
-    list_display = ('jogador', 'tempo', 'contra', 'marcado', 'assistido')
-
-    fieldsets = (
-        (
-            "DADOS DO GOL",
-            {
-                "fields": (
-                    (
-                        "jogador",
-                        "tempo",
-                    ),
-                ),
-            },
-        ),
-        (
-            "INFORMAÇÕES",
-            {
-                "fields": (
-                    (
-                        "contra",
-                        "marcado",
-                        "assistido",
+                        "data",
                     ),
                 ),
             },
@@ -227,6 +205,21 @@ class CompetidoPorAdmin(admin.ModelAdmin):
     model = CompetidoPor
     search_fields = ('time', 'torneio')
     list_display = ('time', 'torneio', 'vitorias', 'derrotas', 'empates', 'pontuacao')
+    readonly_fields = (
+        'saldo_gols',
+        'time',
+        'torneio',
+        'vitorias',
+        'derrotas',
+        'empates',
+        'gols_marcados',
+        'gols_sofridos',
+        'saldo_gols',
+        'saldo_gols',
+        'cartao_amarelo',
+        'cartao_vermelho',
+        'pontuacao',
+    )
 
     fieldsets = (
         (
@@ -248,35 +241,9 @@ class CompetidoPorAdmin(admin.ModelAdmin):
                         "saldo_gols",
                     ),
                     (
-                        "cartao",
+                        "cartao_amarelo",
+                        "cartao_vermelho",
                         "pontuacao",
-                    ),
-                ),
-            },
-        ),
-    )
-
-
-class CartaoAdmin(admin.ModelAdmin):
-    model = Cartao
-    search_fields = ('jogo',)
-    list_display = ('jogo', 'tempo', 'tipo')
-
-    fieldsets = (
-        (
-            "DADOS DO CARTÃO",
-            {
-                "fields": (
-                    (
-                        "jogo",
-                    ),
-                    (
-                        "tempo",
-                        "tipo",
-                    ),
-                    (
-                        "time",
-                        "jogador",
                     ),
                 ),
             },
@@ -287,9 +254,5 @@ class CartaoAdmin(admin.ModelAdmin):
 admin.site.register(Jogador, JogadorAdmin)
 admin.site.register(Time, TimeAdmin)
 admin.site.register(Jogo, JogoAdmin)
-admin.site.register(GolTime, GolTimeAdmin)
-admin.site.register(GolJogador, GolJogadorAdmin)
-admin.site.register(Cartao, CartaoAdmin)
-# admin.site.register(CartaoJogador, CartaoJogadorAdmin)
 admin.site.register(CompetidoPor, CompetidoPorAdmin)
 admin.site.register(Torneio, TorneioAdmin)

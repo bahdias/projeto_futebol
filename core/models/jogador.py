@@ -21,7 +21,7 @@ class Jogador(models.Model):
     )
     idade = models.IntegerField(
         verbose_name="Idade",
-        null=True,
+        null=False,
         blank=True
     )
     nacionalidade = models.CharField(
@@ -66,7 +66,7 @@ class Jogador(models.Model):
         super(Jogador, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.nome} - {self.nacionalidade}'
+        return f'{self.nome} - {self.time.get_nome()}'
 
     class Meta:
         verbose_name = u'Jogador'
