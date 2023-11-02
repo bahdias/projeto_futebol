@@ -8,14 +8,14 @@ class Torneio(models.Model):
         null=False,
         blank=False
     )
-    ano = models.DateField(
-        verbose_name="Ano do Torneio",
+    data = models.DateField(
+        verbose_name="Data do Torneio",
         null=False,
         blank=True,
     )
 
     def __str__(self):
-        return f'{self.nome} {self.ano}'
+        return f'{self.nome} {self.data}'
 
     class Meta:
         verbose_name = u'Torneio'
