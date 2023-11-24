@@ -11,13 +11,8 @@ from .torneio import Torneio
 
 
 class Jogo(models.Model):
-    data_inicio = models.DateTimeField(
+    data_hora_inicio = models.DateTimeField(
         verbose_name="Data de Início da Partida",
-        null=False,
-        blank=False
-    )
-    data_final = models.DateTimeField(
-        verbose_name="Data de Término da Partida",
         null=False,
         blank=False
     )
@@ -50,6 +45,10 @@ class Jogo(models.Model):
         null=False,
         blank=False
     )
+    acabou = models.BooleanField(
+        verbose_name="O Jogo Acabou?",
+        default=False
+    )
 
     def __str__(self):
         return f'{self.time_casa} x {self.time_visitante}'
@@ -73,8 +72,7 @@ def pontuacao(quantidade):
 
 @receiver(post_save, sender=Jogo)
 def atualizar_pontuacao(sender, instance, created, **kwargs):
-    tempo_atual = timezone.now()
-    if instance.data_final <= tempo_atual:
+    if instance.acabou:
         marcou, _ = CompetidoPor.objects.update_or_create(time=instance.time_casa)
         pontuacao(marcou)
 

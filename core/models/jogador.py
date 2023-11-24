@@ -19,14 +19,18 @@ class Jogador(models.Model):
         verbose_name="Nome do Jogador",
         max_length=200
     )
+    apelido = models.CharField(
+        verbose_name="Apelido do Jogador",
+        max_length=200
+    )
     idade = models.IntegerField(
         verbose_name="Idade",
         null=False,
         blank=True
     )
-    nacionalidade = models.CharField(
-        verbose_name="Nacionalidade",
-        max_length=200
+    pais = models.CharField(
+        verbose_name="País",
+        max_length=2,
     )
     dt_nascimento = models.DateField(
         verbose_name='Data de nascimento',
@@ -52,6 +56,9 @@ class Jogador(models.Model):
         null=True,
         blank=True
     )
+    imagem = models.FileField(
+        verbose_name='Imagem do Jogador',
+    )
 
     def calcular_idade(self):
         if self.dt_nascimento:
@@ -62,6 +69,7 @@ class Jogador(models.Model):
         return None
 
     def save(self, *args, **kwargs):
+        self.pais = self.pais.upper()
         self.idade = self.calcular_idade()
         super(Jogador, self).save(*args, **kwargs)
 
