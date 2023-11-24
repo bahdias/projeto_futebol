@@ -11,7 +11,7 @@ from .models.torneio import Torneio
 class JogadorAdmin(admin.ModelAdmin):
     model = Jogador
     search_fields = ('nome', 'posicao', 'idade',)
-    list_display = ('nome', 'nacionalidade', 'posicao', 'time_nome')
+    list_display = ('nome', 'pais', 'posicao', 'time_nome')
     readonly_fields = (
         'idade',
     )
@@ -23,7 +23,7 @@ class JogadorAdmin(admin.ModelAdmin):
                 "fields": (
                     (
                         "nome",
-                        "nacionalidade",
+                        "pais",
                     ),
                     (
                         "dt_nascimento",
@@ -71,6 +71,7 @@ class CartaoInline(admin.TabularInline):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+
 class GolInline(admin.TabularInline):
     model = Gol
     extra = 0
@@ -93,7 +94,7 @@ class GolInline(admin.TabularInline):
 class JogoAdmin(admin.ModelAdmin):
     model = Jogo
     search_fields = ('local', 'time_casa_nome')
-    list_display = ('time_casa_nome', 'time_visitante_nome', 'data_inicio', 'data_final')
+    list_display = ('time_casa_nome', 'time_visitante_nome', 'data_hora_inicio')
     inlines = [
         GolInline,
         CartaoInline
@@ -105,8 +106,7 @@ class JogoAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     (
-                        "data_inicio",
-                        "data_final",
+                        "data_hora_inicio",
                     ),
                     (
                         "torneio",
@@ -116,10 +116,26 @@ class JogoAdmin(admin.ModelAdmin):
                         "time_casa",
                         "time_visitante",
                     ),
+                    (
+                        "acabou",
+                    ),
                 ),
             },
         ),
     )
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if obj and obj.acabou:
+            return (
+                'data_inicio',
+                'torneio',
+                'estadio',
+                'time_casa',
+                'time_visitante',
+                'acabou'
+            )
+        return readonly_fields
 
     def time_casa_nome(self, obj):
         return obj.time_casa.nome if obj.time_casa else ''
@@ -134,7 +150,7 @@ class JogoAdmin(admin.ModelAdmin):
 
 class TimeAdmin(admin.ModelAdmin):
     model = Time
-    search_fields = ('nome', 'abreviacao', 'estado', 'pais')
+    search_fields = ('nome', 'abreviacao', 'pais')
     list_display = ('nome', 'abreviacao', 'pais',)
 
     fieldsets = (
@@ -147,7 +163,6 @@ class TimeAdmin(admin.ModelAdmin):
                         "abreviacao",
                     ),
                     (
-                        "estado",
                         "pais",
                         "fundacao",
                     ),

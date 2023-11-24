@@ -19,7 +19,7 @@ class CompetidoPor(models.Model):
         verbose_name="Torneio",
         on_delete=models.CASCADE,
         related_name='competido_torneio',
-        null=True,
+        null=False,
         blank=False
     )
     vitorias = models.IntegerField(

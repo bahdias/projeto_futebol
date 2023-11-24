@@ -2,7 +2,6 @@ from colorfield.fields import ColorField
 from django.db import models
 
 
-
 class Time(models.Model):
     nome = models.CharField(
         verbose_name="Nome da Equipe",
@@ -12,7 +11,7 @@ class Time(models.Model):
     )
     abreviacao = models.CharField(
         verbose_name="Sigla/Abreviação da Equipe",
-        max_length=200,
+        max_length=3,
         null=False,
         blank=False
     )
@@ -20,10 +19,6 @@ class Time(models.Model):
         verbose_name='Fundado em',
         null=True,
         blank=True
-    )
-    estado = models.CharField(
-        verbose_name="Estado da equipe",
-        max_length=200
     )
     pais = models.CharField(
         verbose_name="País da equipe",
