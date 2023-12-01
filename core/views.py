@@ -53,13 +53,13 @@ class ListarJogadorId(ListAPIView):
         # Verifica a origem do request
         try:
             nome_like_prefix = "name_like="
-            id_time_prefix = "teamId="
+            time_id_prefix = "teamId="
             if id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
                 jogador = Jogador.objects.filter(nome=nome).first()
-            elif id.startswith(id_time_prefix):
-                id_time = id[len(id_time_prefix):].strip('"')
-                time = Time.objects.filter(pk=id_time).first()
+            elif id.startswith(time_id_prefix):
+                time_id = id[len(time_id_prefix):].strip('"')
+                time = Time.objects.filter(pk=time_id).first()
                 jogador = Jogador.objects.filter(time=time).first()
             else:
                 jogador = get_object_or_404(Jogador, pk=id)
@@ -106,16 +106,36 @@ class ListarTimeId(ListAPIView):
         # Verifica a origem do request
         try:
             nome_like_prefix = "name_like="
-            id_torneio_prefix = "tournamentId="
-            if id.startswith(nome_like_prefix):
+            torneio_id_prefix = "tournamentId="
+            if torneio_id_prefix in id and nome_like_prefix in id:
+                start_nome = id.find(nome_like_prefix)
+                end_nome = id.find("&", start_nome)
+                nome = id[start_nome + len(nome_like_prefix):end_nome].strip('"')
+                partes = id.split("=")
+                torneio_id = partes[2].strip('"')
+                torneio = Torneio.objects.filter(pk=torneio_id).first()
+                time = Time.objects.filter(nome=nome)
+                times_ids = CompetidoPor.objects.filter(torneio=torneio).values_list('time_id', flat=True)
+                times_objects = Time.objects.filter(pk__in=times_ids)
+                times_torneio_serializer = ListarTimesSerializer(
+                    times_objects, many=True, context={'request': request}
+                )
+                time_id_serializer = ListarTimesSerializer(
+                    time, many=True, context={'request': request}
+                )
+                serializer = []
+                serializer.extend(times_torneio_serializer.data)
+                serializer.extend(time_id_serializer.data)
+                return Response(serializer, status=HTTP_200_OK)
+            elif id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
                 time = Time.objects.filter(nome=nome).first()
                 serializer = ListarTimesSerializer(
                     time, context={'request': request}
                 )
-            elif id.startswith(id_torneio_prefix):
-                id_torneio = id[len(id_torneio_prefix):].strip('"')
-                torneio = Torneio.objects.filter(pk=id_torneio).first()
+            elif id.startswith(torneio_id_prefix):
+                torneio_id = id[len(torneio_id_prefix):].strip('"')
+                torneio = Torneio.objects.filter(pk=torneio_id).first()
                 times_ids = CompetidoPor.objects.filter(torneio=torneio).values_list('time_id', flat=True)
                 times_objects = Time.objects.filter(pk__in=times_ids)
                 serializer = ListarTimesSerializer(
@@ -165,17 +185,37 @@ class ListarJogosId(ListAPIView):
     def get(self, request, id):
         # Verifica a origem do request
         try:
-            tournamentId_prefix = "tournamentId="
-            teamId_prefix = "teamId="
-            if id.startswith(tournamentId_prefix):
-                torneio_id = id[len(tournamentId_prefix):].strip('"')
+            tournament_id_prefix = "tournamentId="
+            team_id_prefix = "teamId="
+            if tournament_id_prefix in id and team_id_prefix in id:
+                start_id = id.find(tournament_id_prefix)
+                end_nome = id.find("&", start_id)
+                torneio_id = id[start_id + len(tournament_id_prefix):end_nome].strip('"')
+                partes = id.split("=")
+                time_id = partes[2].strip('"')
+                time = Time.objects.filter(pk=time_id).first()
+                jogos_objects_time = Jogo.objects.filter(Q(time_casa=time) | Q(time_visitante=time))
+                torneio = Torneio.objects.filter(pk=torneio_id).first()
+                jogos_objects_torneio = Jogo.objects.filter(torneio=torneio)
+                jogos_torneio_serializer = ListarJogosSerializer(
+                    jogos_objects_torneio, many=True, context={'request': request}
+                )
+                jogos_time_serializer = ListarJogosSerializer(
+                    jogos_objects_time, many=True, context={'request': request}
+                )
+                serializer = []
+                serializer.extend(jogos_torneio_serializer.data)
+                serializer.extend(jogos_time_serializer.data)
+                return Response(serializer, status=HTTP_200_OK)
+            elif id.startswith(tournament_id_prefix):
+                torneio_id = id[len(tournament_id_prefix):].strip('"')
                 torneio = Torneio.objects.filter(pk=torneio_id).first()
                 jogos_objects = Jogo.objects.filter(torneio=torneio)
                 serializer = ListarJogosSerializer(
                     jogos_objects, many=True, context={'request': request}
                 )
-            elif id.startswith(teamId_prefix):
-                time_id = id[len(teamId_prefix):].strip('"')
+            elif id.startswith(team_id_prefix):
+                time_id = id[len(team_id_prefix):].strip('"')
                 time = Time.objects.filter(pk=time_id).first()
                 jogos_objects = Jogo.objects.filter(Q(time_casa=time) | Q(time_visitante=time))
                 serializer = ListarJogosSerializer(
@@ -225,9 +265,9 @@ class ListarTorneiosId(ListAPIView):
     def get(self, request, id):
         # Verifica a origem do request
         try:
-            teamId_prefix = "teamId="
-            if id.startswith(teamId_prefix):
-                time_id = id[len(teamId_prefix):].strip('"')
+            team_id_prefix = "teamId="
+            if id.startswith(team_id_prefix):
+                time_id = id[len(team_id_prefix):].strip('"')
                 time = Time.objects.filter(pk=time_id).first()
                 torneios_ids = CompetidoPor.objects.filter(time=time).values_list('torneio_id', flat=True)
                 torneios_objects = Torneio.objects.filter(pk__in=torneios_ids)
@@ -264,9 +304,10 @@ class ListarTimesTorneiosId(ListAPIView):
         except Exception as e:
             print(e)
             return Response(
-                {'Erro': f'Não foi possível listar os jogos do time {nome}.'},
+                {'Erro': f'Não foi possível listar os jogos do time {id}.'},
                 status=HTTP_400_BAD_REQUEST,
             )
+
 
 class Ranking(ListAPIView):
     """
@@ -288,28 +329,44 @@ class Ranking(ListAPIView):
                     else:
                         jogadores[jogador] = {'jogador': jogador, 'quantidade': 1}
 
-                ranking = sorted(jogadores.values(), key=lambda x: x['quantidade'], reverse=True)[:limit]
-                serializer_data = [
-                    {'nome': jogador['jogador'].nome, 'apelido': jogador['jogador'].apelido, 'quantidade_gols': jogador['quantidade']}
-                    for jogador in ranking
-                ]
+                serializer_data = []
+                for jogador_info in jogadores.values():
+                    jogador = jogador_info['jogador']
+                    jogador_serializer = ListarJogadoresSerializer(jogador, context={'request': request})
+                    jogador_data = jogador_serializer.data
+                    quantidade_gols = jogador_info['quantidade']
+
+                    serializer_data.append({
+                        'gols': quantidade_gols,
+                        'jogador': jogador_data
+                    })
+
+                serializer_data = sorted(serializer_data, key=lambda x: x['quantidade_gols'], reverse=True)[:limit]
 
                 return Response(serializer_data, status=HTTP_200_OK)
             if category == 'cards':
-                gols = Cartao.objects.filter(jogo__in=jogos)
+                cartoes = Cartao.objects.filter(jogo__in=jogos)
                 jogadores = {}
-                for gol in gols:
-                    jogador = gol.jogador
+                for cartao in cartoes:
+                    jogador = cartao.jogador
                     if jogador in jogadores:
                         jogadores[jogador]['quantidade'] += 1
                     else:
                         jogadores[jogador] = {'jogador': jogador, 'quantidade': 1}
 
-                ranking = sorted(jogadores.values(), key=lambda x: x['quantidade'], reverse=True)[:limit]
-                serializer_data = [
-                    {'nome': jogador['jogador'].nome, 'apelido': jogador['jogador'].apelido, 'quantidade_cartao': jogador['quantidade']}
-                    for jogador in ranking
-                ]
+                serializer_data = []
+                for jogador_info in jogadores.values():
+                    jogador = jogador_info['jogador']
+                    jogador_serializer = ListarJogadoresSerializer(jogador, context={'request': request})
+                    jogador_data = jogador_serializer.data
+                    quantidade_cartao = jogador_info['quantidade']
+
+                    serializer_data.append({
+                        'quantidade_cartao': quantidade_cartao,
+                        'jogador': jogador_data,
+                    })
+
+                serializer_data = sorted(serializer_data, key=lambda x: x['quantidade_cartao'], reverse=True)[:limit]
 
                 return Response(serializer_data, status=HTTP_200_OK)
             else:
@@ -322,6 +379,7 @@ class Ranking(ListAPIView):
                 {'Erro': f'Não foi possível obter o ranking: {str(e)}'},
                 status=HTTP_400_BAD_REQUEST,
             )
+
 
 class Estatisticas(ListAPIView):
     """
@@ -336,15 +394,25 @@ class Estatisticas(ListAPIView):
 
             gols = Gol.objects.filter(jogo__in=jogos, jogador=jogador).count()
             assistencia = Gol.objects.filter(jogo__in=jogos, assistido=jogador).count()
-            cartao_amarelo = Cartao.objects.filter(jogo__in=jogos, jogador=jogador, tipo=EnumCartao.AMARELO.value).count()
-            cartao_vermelho = Cartao.objects.filter(jogo__in=jogos, jogador=jogador, tipo=EnumCartao.VERMELHO.value).count()
+            cartao_amarelo = Cartao.objects.filter(jogo__in=jogos, jogador=jogador,
+                                                   tipo=EnumCartao.AMARELO.value).count()
+            cartao_vermelho = Cartao.objects.filter(jogo__in=jogos, jogador=jogador,
+                                                    tipo=EnumCartao.VERMELHO.value).count()
 
+            # Obter dados do jogador usando o serializer
+            jogador_data = ListarJogadoresSerializer(jogador, context={'request': request}).data
+
+            # Adicionar dados do jogador ao dicionário serializer_data
             serializer_data = [
                 {
-                    'nome': jogador.nome, 'gols': gols, 'assistencia': assistencia,
-                    'cartao_amarelo': cartao_amarelo, 'cartao_vermelho': cartao_vermelho
+                    'gols': gols,
+                    'cartao_amarelo': cartao_amarelo,
+                    'cartao_vermelho': cartao_vermelho,
+                    'assistencia': assistencia,
+                    'jogador': jogador_data
                 }
             ]
+            serializer_data.extend(jogador_data.data)
             return Response(serializer_data, status=HTTP_200_OK)
         except Exception as e:
             return Response(
