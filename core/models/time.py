@@ -41,7 +41,6 @@ class Time(models.Model):
         return f'{self.nome} - {self.abreviacao}'
 
     def save(self, *args, **kwargs):
-        self.estado = self.estado.upper()
         self.pais = self.pais.upper()
         self.abreviacao = self.abreviacao.upper()
         super(Time, self).save(*args, **kwargs)

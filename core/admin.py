@@ -62,14 +62,23 @@ class CartaoInline(admin.TabularInline):
     extra = 0
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        jogo_id = request.resolver_match.kwargs['object_id']
-        jogo = Jogo.objects.get(pk=jogo_id)
-        if db_field.name == "jogador":
-            kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
-        elif db_field.name == "time":
-            kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+        if self.model:
+            jogo_id = request.resolver_match.kwargs.get('object_id')
 
+            # Verificar se o jogo_id existe
+            if jogo_id is not None:
+                try:
+                    jogo = Jogo.objects.get(pk=jogo_id)
+                except Jogo.DoesNotExist:
+                    jogo = None
+
+                if jogo:
+                    if db_field.name == "jogador":
+                        kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
+                    elif db_field.name == "time":
+                        kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
+
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class GolInline(admin.TabularInline):
@@ -77,17 +86,27 @@ class GolInline(admin.TabularInline):
     extra = 0
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        jogo_id = request.resolver_match.kwargs['object_id']
-        jogo = Jogo.objects.get(pk=jogo_id)
-        if db_field.name == "jogador":
-            kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
-        elif db_field.name in ("time_marcou", "time_sofreu"):
-            if db_field.name == "time_marcou":
-                kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
-            elif db_field.name == "time_sofreu":
-                kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
-        elif db_field.name == "assistido":
-            kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
+        if self.model:
+            jogo_id = request.resolver_match.kwargs.get('object_id')
+
+            # Verificar se o jogo_id existe
+            if jogo_id is not None:
+                try:
+                    jogo = Jogo.objects.get(pk=jogo_id)
+                except Jogo.DoesNotExist:
+                    jogo = None
+
+                if jogo:
+                    if db_field.name == "jogador":
+                        kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
+                    elif db_field.name in ("time_marcou", "time_sofreu"):
+                        if db_field.name == "time_marcou":
+                            kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
+                        elif db_field.name == "time_sofreu":
+                            kwargs["queryset"] = Time.objects.filter(pk__in=[jogo.time_casa.id, jogo.time_visitante.id])
+                    elif db_field.name == "assistido":
+                        kwargs["queryset"] = jogo.time_casa.time_jogador.all() | jogo.time_visitante.time_jogador.all()
+
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
