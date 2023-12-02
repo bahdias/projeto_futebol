@@ -77,6 +77,11 @@ class ListarJogadorId(ListAPIView):
                 time_id = id[len(time_id_prefix):].strip('"')
                 time = Time.objects.filter(pk=time_id).first()
                 jogador = Jogador.objects.filter(time=time).first()
+                if jogador.nome is "":
+                    return Response(
+                        {'Erro': f'Não foi possível listar o jogador.'},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
             else:
                 jogador = get_object_or_404(Jogador, pk=id)
             serializer = ListarJogadoresSerializer(

@@ -25,6 +25,7 @@ class JogadorAdmin(ImportExportModelAdmin):
                     (
                         "nome",
                         "pais",
+                        "imagem"
                     ),
                     (
                         "dt_nascimento",
