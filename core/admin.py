@@ -28,6 +28,7 @@ class JogadorAdmin(ImportExportModelAdmin):
                         "imagem"
                     ),
                     (
+                        "apelido",
                         "dt_nascimento",
                         "idade",
                     ),
@@ -195,7 +196,7 @@ class TimeAdmin(ImportExportModelAdmin):
             {
                 "fields": (
                     (
-                        "escudo_url",
+                        "imagem",
                     ),
                     (
                         "cor_primaria",

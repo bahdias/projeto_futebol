@@ -12,8 +12,8 @@ class Jogador(models.Model):
         verbose_name="Time",
         on_delete=models.CASCADE,
         related_name='time_jogador',
-        null=False,
-        blank=False
+        null=True,
+        blank=True
     )
     nome = models.CharField(
         verbose_name="Nome do Jogador",
@@ -56,8 +56,11 @@ class Jogador(models.Model):
         null=True,
         blank=True
     )
-    imagem = models.FileField(
+    imagem = models.URLField(
         verbose_name='Imagem do Jogador',
+        max_length=500,
+        null=True,
+        blank=True
     )
 
     def calcular_idade(self):
@@ -74,7 +77,7 @@ class Jogador(models.Model):
         super(Jogador, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.nome} - {self.time.get_nome()}'
+        return f'{self.nome}'
 
     class Meta:
         verbose_name = u'Jogador'
