@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models.cartao import Cartao
-from .models.competido_por import CompetidoPor
+from .models.estatistica import Estatistica
 from .models.gol import Gol
 from .models.jogador import Jogador
 from .models.jogo import Jogo
@@ -236,8 +236,8 @@ class TorneioAdmin(ImportExportModelAdmin):
     )
 
 
-class CompetidoPorAdmin(admin.ModelAdmin):
-    model = CompetidoPor
+class EstatisticaAdmin(admin.ModelAdmin):
+    model = Estatistica
     search_fields = ('time', 'torneio')
     list_display = ('time', 'torneio', 'vitorias', 'derrotas', 'empates', 'pontuacao')
     readonly_fields = (
@@ -289,5 +289,5 @@ class CompetidoPorAdmin(admin.ModelAdmin):
 admin.site.register(Jogador, JogadorAdmin)
 admin.site.register(Time, TimeAdmin)
 admin.site.register(Jogo, JogoAdmin)
-admin.site.register(CompetidoPor, CompetidoPorAdmin)
+admin.site.register(Estatistica, EstatisticaAdmin)
 admin.site.register(Torneio, TorneioAdmin)

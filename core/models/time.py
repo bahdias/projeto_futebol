@@ -24,7 +24,7 @@ class Time(models.Model):
         verbose_name="País da equipe",
         max_length=2,
     )
-    escudo_url = models.URLField(
+    imagem = models.URLField(
         verbose_name='URL do Escudo',
         max_length=500,
         null=True,

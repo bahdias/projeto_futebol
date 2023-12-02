@@ -3,9 +3,8 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils import timezone
 
-from .competido_por import CompetidoPor
+from .estatistica import Estatistica
 from .time import Time
 from .torneio import Torneio
 
@@ -73,8 +72,8 @@ def pontuacao(quantidade):
 @receiver(post_save, sender=Jogo)
 def atualizar_pontuacao(sender, instance, created, **kwargs):
     if instance.acabou:
-        marcou, _ = CompetidoPor.objects.update_or_create(time=instance.time_casa)
+        marcou, _ = Estatistica.objects.update_or_create(time=instance.time_casa)
         pontuacao(marcou)
 
-        sofreu, _ = CompetidoPor.objects.update_or_create(time=instance.time_visitante)
+        sofreu, _ = Estatistica.objects.update_or_create(time=instance.time_visitante)
         pontuacao(sofreu)

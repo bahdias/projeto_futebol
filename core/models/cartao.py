@@ -4,11 +4,18 @@ from django.dispatch import receiver
 from ..constants import EnumCartao
 from django.core.exceptions import ValidationError
 
-from .competido_por import CompetidoPor
+from .estatistica import Estatistica
 from .jogador import Jogador
 from .jogo import Jogo
 from ..choices import CARTAO
 from .time import Time
+
+
+def validate_custom_time_format(value):
+    # Verifique se o valor atende a um dos formatos desejados (XX:XX ou XXX:XX)
+    if not (len(value) == 5 and value[:2].isdigit() and value[2] == ':' and value[3:].isdigit()) and \
+            not (len(value) == 6 and value[:3].isdigit() and value[3] == ':' and value[4:].isdigit()):
+        raise ValidationError("O formato do tempo deve ser XX:XX ou XXX:XX.")
 
 
 class Cartao(models.Model):
@@ -30,10 +37,15 @@ class Cartao(models.Model):
         blank=True,
         default=None
     )
-    tempo = models.DateTimeField(
+    tempo = models.CharField(
         verbose_name="Tempo em que registrou",
-        null=False,
-        blank=False
+        max_length=6,
+        validators=[validate_custom_time_format]
+    )
+    tempo_acrescimo = models.CharField(
+        verbose_name="Tempo de acrescimo",
+        max_length=6,
+        validators=[validate_custom_time_format]
     )
     tipo = models.SmallIntegerField(
         verbose_name="Tipo de Cartão",
@@ -57,17 +69,17 @@ class Cartao(models.Model):
                 raise ValidationError("O Jogador selecionado não é integrante do time selecionado.")
 
     def delete(self, using=None, keep_parents=False):
-        competido_por, _ = CompetidoPor.objects.update_or_create(time=self.time)
-        if competido_por:
+        estatistica, _ = Estatistica.objects.update_or_create(time=self.time)
+        if estatistica:
             if self.tipo is EnumCartao.AMARELO.value:
-                competido_por.cartao_amarelo -= Cartao.objects.filter(jogo=self.jogo,
-                                                                      time=self.time,
-                                                                      tipo=self.tipo).count()
+                estatistica.cartao_amarelo -= Cartao.objects.filter(jogo=self.jogo,
+                                                                    time=self.time,
+                                                                    tipo=self.tipo).count()
             elif self.tipo is EnumCartao.VERMELHO.value:
-                competido_por.cartao_vermelho -= Cartao.objects.filter(jogo=self.jogo,
-                                                                       time=self.time,
-                                                                       tipo=self.tipo).count()
-            competido_por.save()
+                estatistica.cartao_vermelho -= Cartao.objects.filter(jogo=self.jogo,
+                                                                     time=self.time,
+                                                                     tipo=self.tipo).count()
+            estatistica.save()
 
         super(Cartao, self).delete(using, keep_parents)
 
@@ -84,14 +96,14 @@ class Cartao(models.Model):
 def atualizar_estatisticas_com_gol(sender, instance, created, **kwargs):
     try:
         if created:
-            competido_por, _ = CompetidoPor.objects.update_or_create(time=instance.time, torneio=instance.jogo.torneio)
-            if competido_por:
-                competido_por.cartao_vermelho += sender.objects.filter(jogo=instance.jogo,
-                                                                       time=instance.time,
-                                                                       tipo=EnumCartao.VERMELHO.value).count()
-                competido_por.cartao_amarelo += sender.objects.filter(jogo=instance.jogo,
-                                                                      time=instance.time,
-                                                                      tipo=EnumCartao.AMARELO.value).count()
-                competido_por.save()
+            estatistica, _ = Estatistica.objects.update_or_create(time=instance.time, torneio=instance.jogo.torneio)
+            if estatistica:
+                estatistica.cartao_vermelho += sender.objects.filter(jogo=instance.jogo,
+                                                                     time=instance.time,
+                                                                     tipo=EnumCartao.VERMELHO.value).count()
+                estatistica.cartao_amarelo += sender.objects.filter(jogo=instance.jogo,
+                                                                    time=instance.time,
+                                                                    tipo=EnumCartao.AMARELO.value).count()
+                estatistica.save()
     except Exception as e:
         print(e)

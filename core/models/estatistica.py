@@ -5,12 +5,12 @@ from .time import Time
 from .torneio import Torneio
 
 
-class CompetidoPor(models.Model):
+class Estatistica(models.Model):
     time = models.ForeignKey(
         Time,
         verbose_name="Time",
         on_delete=models.CASCADE,
-        related_name='competido_time',
+        related_name='estatistica_time',
         null=False,
         blank=False
     )
@@ -18,7 +18,7 @@ class CompetidoPor(models.Model):
         Torneio,
         verbose_name="Torneio",
         on_delete=models.CASCADE,
-        related_name='competido_torneio',
+        related_name='estatistica_torneio',
         null=False,
         blank=False
     )
@@ -72,6 +72,6 @@ class CompetidoPor(models.Model):
         return f'{self.time} ({self.torneio})'
 
     class Meta:
-        verbose_name = u'Competido por'
-        verbose_name_plural = u'Competidos por'
+        verbose_name = u'Estatistica'
+        verbose_name_plural = u'Estatisticas'
         app_label = 'core'
