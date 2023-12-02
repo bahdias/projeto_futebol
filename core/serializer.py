@@ -51,16 +51,24 @@ class ListarJogosSerializer(serializers.ModelSerializer):
         return representation
 
 
-class ListarTorneiosSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Torneio
-        fields = '__all__'
-
-
 class ListarEstatisticaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Estatistica
         fields = '__all__'
+
+
+class ListarTorneiosSerializer(serializers.ModelSerializer):
+    estatisticas = ListarEstatisticaSerializer(many=True, read_only=True)
+    class Meta:
+        model = Torneio
+        fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        estatisticas_data = ListarEstatisticaSerializer(instance.estatistica_torneio.all(), many=True).data
+        representation['estatistica'] = estatisticas_data
+
+        return representation
 
 
 class ListarTimesTorneiosSerializer(serializers.ModelSerializer):
