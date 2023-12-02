@@ -418,7 +418,6 @@ class Estatisticas(ListAPIView):
                     'jogador': jogador_data
                 }
             ]
-            serializer_data.extend(jogador_data.data)
             return Response(serializer_data, status=HTTP_200_OK)
         except Exception as e:
             return Response(
