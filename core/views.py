@@ -39,7 +39,7 @@ class ListarJogadores(ListAPIView):
             return Response(serializer.data, status=HTTP_200_OK)
         except Exception:
             return Response(
-                {'Erro': 'Não foi possível listar todos os Jogadores.'},
+                [],
                 status=HTTP_400_BAD_REQUEST,
             )
 
@@ -112,7 +112,7 @@ class ListarTimes(ListAPIView):
             return Response(serializer.data, status=HTTP_200_OK)
         except Exception:
             return Response(
-                {'Erro': 'Não foi possível listar todos os Times.'},
+                [],
                 status=HTTP_400_BAD_REQUEST,
             )
 
@@ -189,7 +189,7 @@ class ListarJogos(ListAPIView):
             return Response(serializer.data, status=HTTP_200_OK)
         except Exception:
             return Response(
-                {'Erro': 'Não foi possível listar todos os Jogos.'},
+                [],
                 status=HTTP_400_BAD_REQUEST,
             )
 
@@ -263,7 +263,7 @@ class ListarTorneios(ListAPIView):
             return Response(serializer.data, status=HTTP_200_OK)
         except Exception:
             return Response(
-                {'Erro': 'Não foi possível listar todos os Torneios.'},
+                [],
                 status=HTTP_400_BAD_REQUEST,
             )
 
