@@ -6,7 +6,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_200_OK
 
 from .constants import EnumCartao
 from .models.cartao import Cartao
-from .models.competido_por import CompetidoPor
+from .models.estatistica import Estatistica
 from .models.gol import Gol
 from .models.jogador import Jogador
 from .models.jogo import Jogo
@@ -128,13 +128,13 @@ class ListarTimeId(ListAPIView):
                 times_objects = Time.objects.filter(
                     nome__contains=nome,
                 )
-                competido_por = CompetidoPor.objects.filter(
+                estatisticas = Estatistica.objects.filter(
                     time__in=times_objects,
                     torneio=torneio
                 )
                 serializer = []
-                for competido in competido_por:
-                    times = ListarTimesSerializer(competido.time, context={'request': request})
+                for estatistica in estatisticas:
+                    times = ListarTimesSerializer(estatistica.time, context={'request': request})
                     times_data = times.data
 
                     serializer.append(times_data)
@@ -148,7 +148,7 @@ class ListarTimeId(ListAPIView):
             elif id.startswith(torneio_id_prefix):
                 torneio_id = id[len(torneio_id_prefix):].strip('"')
                 torneio = Torneio.objects.filter(pk=torneio_id).first()
-                times_ids = CompetidoPor.objects.filter(torneio=torneio).values_list('time_id', flat=True)
+                times_ids = Estatistica.objects.filter(torneio=torneio).values_list('time_id', flat=True)
                 times_objects = Time.objects.filter(pk__in=times_ids)
                 serializer = ListarTimesSerializer(
                     times_objects, many=True, context={'request': request}
@@ -275,7 +275,7 @@ class ListarTorneiosId(ListAPIView):
             if id.startswith(team_id_prefix):
                 time_id = id[len(team_id_prefix):].strip('"')
                 time = Time.objects.filter(pk=time_id).first()
-                torneios_ids = CompetidoPor.objects.filter(time=time).values_list('torneio_id', flat=True)
+                torneios_ids = Estatistica.objects.filter(time=time).values_list('torneio_id', flat=True)
                 torneios_objects = Torneio.objects.filter(pk__in=torneios_ids)
                 serializer = ListarTorneiosSerializer(
                     torneios_objects, many=True, context={'request': request}

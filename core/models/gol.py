@@ -4,10 +4,17 @@ from django.dispatch import receiver
 
 from django.core.exceptions import ValidationError
 
-from .competido_por import CompetidoPor
+from .estatistica import Estatistica
 from .jogador import Jogador
 from .jogo import Jogo
 from .time import Time
+
+
+def validate_custom_time_format(value):
+    # Verifique se o valor atende a um dos formatos desejados (XX:XX ou XXX:XX)
+    if not (len(value) == 5 and value[:2].isdigit() and value[2] == ':' and value[3:].isdigit()) and \
+            not (len(value) == 6 and value[:3].isdigit() and value[3] == ':' and value[4:].isdigit()):
+        raise ValidationError("O formato do tempo deve ser XX:XX ou XXX:XX.")
 
 
 class Gol(models.Model):
@@ -41,10 +48,15 @@ class Gol(models.Model):
         null=True,
         blank=True
     )
-    tempo = models.DateTimeField(
+    tempo = models.CharField(
         verbose_name="Tempo em que registrou",
-        null=False,
-        blank=False
+        max_length=6,
+        validators=[validate_custom_time_format]
+    )
+    tempo_acrescimo = models.CharField(
+        verbose_name="Tempo de acrescimo",
+        max_length=6,
+        validators=[validate_custom_time_format]
     )
     foi_contra = models.BooleanField(
         verbose_name="Contra?",
@@ -63,12 +75,12 @@ class Gol(models.Model):
             raise ValidationError("O time que marcou não pode ser o mesmo que o time que sofreu.")
 
     def delete(self, using=None, keep_parents=False):
-        marcou, _ = CompetidoPor.objects.update_or_create(time=self.time_marcou)
+        marcou, _ = Estatistica.objects.update_or_create(time=self.time_marcou)
         if marcou:
             marcou.gols_marcados -= 1
             marcou.save()
             marcou.set_saldo_gols()
-        sofreu, _ = CompetidoPor.objects.update_or_create(time=self.time_sofreu)
+        sofreu, _ = Estatistica.objects.update_or_create(time=self.time_sofreu)
         if sofreu:
             sofreu.gols_sofridos -= 1
             sofreu.save()
@@ -88,16 +100,15 @@ class Gol(models.Model):
 @receiver(post_save, sender=Gol)
 def atualizar_estatisticas_com_gol(sender, instance, created, **kwargs):
     if created:
-        marcou, _ = CompetidoPor.objects.update_or_create(time=instance.time_marcou,
-                                                          torneio=instance.jogo.torneio)
+        marcou, _ = Estatistica.objects.update_or_create(time=instance.time_marcou,
+                                                         torneio=instance.jogo.torneio)
         if marcou:
             marcou.gols_marcados += 1
             marcou.save()
             marcou.set_saldo_gols()
-        sofreu, _ = CompetidoPor.objects.update_or_create(time=instance.time_sofreu,
-                                                          torneio=instance.jogo.torneio)
+        sofreu, _ = Estatistica.objects.update_or_create(time=instance.time_sofreu,
+                                                         torneio=instance.jogo.torneio)
         if sofreu:
             sofreu.gols_sofridos += 1
             sofreu.save()
             sofreu.set_saldo_gols()
-

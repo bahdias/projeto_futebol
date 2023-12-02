@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
-from .models.competido_por import CompetidoPor
+from .models.cartao import Cartao
+from .models.estatistica import Estatistica
+from .models.gol import Gol
 from .models.jogador import Jogador
 from .models.jogo import Jogo
 from .models.time import Time
@@ -19,10 +21,34 @@ class ListarTimesSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class GolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gol
+        fields = '__all__'
+
+
+class CartaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cartao
+        fields = '__all__'
+
+
 class ListarJogosSerializer(serializers.ModelSerializer):
+    gols = GolSerializer(many=True, read_only=True)
+    cartoes = CartaoSerializer(many=True, read_only=True)
+
     class Meta:
         model = Jogo
         fields = '__all__'
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        gols_data = GolSerializer(instance.gol_jogo.all(), many=True).data
+        representation['gols'] = gols_data
+        cartoes_data = CartaoSerializer(instance.cartao_jogo.all(), many=True).data
+        representation['cartoes'] = cartoes_data
+
+        return representation
 
 
 class ListarTorneiosSerializer(serializers.ModelSerializer):
@@ -33,7 +59,7 @@ class ListarTorneiosSerializer(serializers.ModelSerializer):
 
 class ListarEstatisticaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CompetidoPor
+        model = Estatistica
         fields = '__all__'
 
 
