@@ -52,7 +52,7 @@ class ListarJogadorId(ListAPIView):
     def get(self, request, id):
         # Verifica a origem do request
         try:
-            nome_like_prefix = "tournamentId="
+            nome_like_prefix = "name_like="
             time_id_prefix = "teamId="
             if nome_like_prefix in id and time_id_prefix in id:
                 nome = id.split(nome_like_prefix)[1].split("&")[0].strip('"')
