@@ -54,9 +54,25 @@ class ListarJogadorId(ListAPIView):
         try:
             nome_like_prefix = "name_like="
             time_id_prefix = "teamId="
-            if id.startswith(nome_like_prefix):
+            if nome_like_prefix in id and time_id_prefix in id:
+                nome = id.split(nome_like_prefix)[1].split("&")[0].strip('"')
+                time_id = id.split(time_id_prefix)[1].strip('"')
+                time = Time.objects.get(pk=time_id)
+                jogadores_objects = Jogador.objects.filter(
+                    nome__contains=nome,
+                    time=time
+                )
+
+                serializer = []
+                for jogador in jogadores_objects:
+                    jogadores = ListarJogadoresSerializer(jogador, context={'request': request})
+                    jogadores_data = jogadores.data
+
+                    serializer.append(jogadores_data)
+                return Response(serializer, status=HTTP_200_OK)
+            elif id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
-                jogador = Jogador.objects.filter(nome=nome).first()
+                jogador = Jogador.objects.filter(nome__contains=nome).first()
             elif id.startswith(time_id_prefix):
                 time_id = id[len(time_id_prefix):].strip('"')
                 time = Time.objects.filter(pk=time_id).first()
@@ -83,7 +99,6 @@ class ListarTimes(ListAPIView):
     """
 
     def get(self, request):
-        # Verifica a origem do request
         try:
             times = Time.objects.filter().all()
             serializer = ListarTimesSerializer(
@@ -103,33 +118,30 @@ class ListarTimeId(ListAPIView):
     """
 
     def get(self, request, id):
-        # Verifica a origem do request
         try:
             nome_like_prefix = "name_like="
             torneio_id_prefix = "tournamentId="
             if torneio_id_prefix in id and nome_like_prefix in id:
-                start_nome = id.find(nome_like_prefix)
-                end_nome = id.find("&", start_nome)
-                nome = id[start_nome + len(nome_like_prefix):end_nome].strip('"')
-                partes = id.split("=")
-                torneio_id = partes[2].strip('"')
-                torneio = Torneio.objects.filter(pk=torneio_id).first()
-                time = Time.objects.filter(nome=nome)
-                times_ids = CompetidoPor.objects.filter(torneio=torneio).values_list('time_id', flat=True)
-                times_objects = Time.objects.filter(pk__in=times_ids)
-                times_torneio_serializer = ListarTimesSerializer(
-                    times_objects, many=True, context={'request': request}
+                nome = id.split(nome_like_prefix)[1].split("&")[0].strip('"')
+                torneio_id = id.split(torneio_id_prefix)[1].strip('"')
+                torneio = Torneio.objects.get(pk=torneio_id)
+                times_objects = Time.objects.filter(
+                    nome__contains=nome,
                 )
-                time_id_serializer = ListarTimesSerializer(
-                    time, many=True, context={'request': request}
+                competido_por = CompetidoPor.objects.filter(
+                    time__in=times_objects,
+                    torneio=torneio
                 )
                 serializer = []
-                serializer.extend(times_torneio_serializer.data)
-                serializer.extend(time_id_serializer.data)
+                for competido in competido_por:
+                    times = ListarTimesSerializer(competido.time, context={'request': request})
+                    times_data = times.data
+
+                    serializer.append(times_data)
                 return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
-                time = Time.objects.filter(nome=nome).first()
+                time = Time.objects.filter(nome__contains=nome).first()
                 serializer = ListarTimesSerializer(
                     time, context={'request': request}
                 )
@@ -188,25 +200,18 @@ class ListarJogosId(ListAPIView):
             tournament_id_prefix = "tournamentId="
             team_id_prefix = "teamId="
             if tournament_id_prefix in id and team_id_prefix in id:
-                start_id = id.find(tournament_id_prefix)
-                end_nome = id.find("&", start_id)
-                torneio_id = id[start_id + len(tournament_id_prefix):end_nome].strip('"')
-                partes = id.split("=")
-                time_id = partes[2].strip('"')
-                time = Time.objects.filter(pk=time_id).first()
-                jogos_objects_time = Jogo.objects.filter(Q(time_casa=time) | Q(time_visitante=time))
-                torneio = Torneio.objects.filter(pk=torneio_id).first()
-                jogos_objects_torneio = Jogo.objects.filter(torneio=torneio)
-                jogos_torneio_serializer = ListarJogosSerializer(
-                    jogos_objects_torneio, many=True, context={'request': request}
+                torneio_id = id.split(tournament_id_prefix)[1].split("&")[0].strip('"')
+                time_id = id.split(team_id_prefix)[1].strip('"')
+                time = Time.objects.get(pk=time_id)
+                torneio = Torneio.objects.get(pk=torneio_id)
+                jogos_objects = Jogo.objects.filter(
+                    Q(time_casa=time) | Q(time_visitante=time),
+                    torneio=torneio,
                 )
-                jogos_time_serializer = ListarJogosSerializer(
-                    jogos_objects_time, many=True, context={'request': request}
+                jogos_serializer = ListarJogosSerializer(
+                    jogos_objects, many=True, context={'request': request}
                 )
-                serializer = []
-                serializer.extend(jogos_torneio_serializer.data)
-                serializer.extend(jogos_time_serializer.data)
-                return Response(serializer, status=HTTP_200_OK)
+                return Response(jogos_serializer.data, status=HTTP_200_OK)
             elif id.startswith(tournament_id_prefix):
                 torneio_id = id[len(tournament_id_prefix):].strip('"')
                 torneio = Torneio.objects.filter(pk=torneio_id).first()
@@ -227,7 +232,8 @@ class ListarJogosId(ListAPIView):
                     jogo, context={'request': request}
                 )
             return Response(serializer.data, status=HTTP_200_OK)
-        except Exception:
+        except Exception as e:
+            print(e)
             return Response(
                 {'Erro': f'Não foi possível listar o jogo com o id {id}.'},
                 status=HTTP_400_BAD_REQUEST,

@@ -6,9 +6,10 @@ from .models.jogador import Jogador
 from .models.jogo import Jogo
 from .models.time import Time
 from .models.torneio import Torneio
+from import_export.admin import ImportExportModelAdmin
 
 
-class JogadorAdmin(admin.ModelAdmin):
+class JogadorAdmin(ImportExportModelAdmin):
     model = Jogador
     search_fields = ('nome', 'posicao', 'idade',)
     list_display = ('nome', 'pais', 'posicao', 'time_nome')
@@ -110,7 +111,7 @@ class GolInline(admin.TabularInline):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
-class JogoAdmin(admin.ModelAdmin):
+class JogoAdmin(ImportExportModelAdmin):
     model = Jogo
     search_fields = ('local', 'time_casa_nome')
     list_display = ('time_casa_nome', 'time_visitante_nome', 'data_hora_inicio')
@@ -167,7 +168,7 @@ class JogoAdmin(admin.ModelAdmin):
     time_visitante_nome.short_description = 'Nome da Equipe Visitante'
 
 
-class TimeAdmin(admin.ModelAdmin):
+class TimeAdmin(ImportExportModelAdmin):
     model = Time
     search_fields = ('nome', 'abreviacao', 'pais')
     list_display = ('nome', 'abreviacao', 'pais',)
@@ -215,7 +216,7 @@ class TimeAdmin(admin.ModelAdmin):
     )
 
 
-class TorneioAdmin(admin.ModelAdmin):
+class TorneioAdmin(ImportExportModelAdmin):
     model = Torneio
     search_fields = ('nome', 'data')
     list_display = ('nome', 'data')
