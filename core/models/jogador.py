@@ -77,7 +77,7 @@ class Jogador(models.Model):
         super(Jogador, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.nome}'
+        return f'{self.nome} - {self.time.get_nome()}'
 
     class Meta:
         verbose_name = u'Jogador'
