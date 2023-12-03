@@ -62,7 +62,6 @@ class ListarJogadorId(ListAPIView):
                     nome__icontains=nome,
                     time=time
                 )
-
                 serializer = []
                 for jogador in jogadores_objects:
                     jogadores = ListarJogadoresSerializer(jogador, context={'request': request})
@@ -72,7 +71,13 @@ class ListarJogadorId(ListAPIView):
                 return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
-                jogador = Jogador.objects.filter(nome__icontains=nome).first()
+                jogadores_objects = Jogador.objects.filter(nome__icontains=nome)
+                serializer = []
+                for jogador in jogadores_objects:
+                    jogadores = ListarJogadoresSerializer(jogador, context={'request': request})
+                    jogadores_data = jogadores.data
+                    serializer.append(jogadores_data)
+                return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(time_id_prefix):
                 time_id = id[len(time_id_prefix):].strip('"')
                 time = Time.objects.filter(pk=time_id).first()
@@ -147,15 +152,18 @@ class ListarTimeId(ListAPIView):
                 return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
-                time = Time.objects.filter(nome__icontains=nome).first()
-                if time is None:
+                times_objects = Time.objects.filter(nome__icontains=nome)
+                if times_objects is None:
                     return Response(
                         [],
                         status=HTTP_400_BAD_REQUEST,
                     )
-                serializer = ListarTimesSerializer(
-                    time, context={'request': request}
-                )
+                serializer = []
+                for time in times_objects:
+                    times = ListarTimesSerializer(time, context={'request': request})
+                    times_data = times.data
+                    serializer.append(times_data)
+                return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(torneio_id_prefix):
                 torneio_id = id[len(torneio_id_prefix):].strip('"')
                 torneio = Torneio.objects.filter(pk=torneio_id).first()
@@ -357,6 +365,27 @@ class Ranking(ListAPIView):
                         'quantidade': quantidade_gols,
                         'jogador': jogador_data
                     })
+            elif category == 'assists':
+                gols = Gol.objects.filter(jogo__in=jogos)
+                jogadores = {}
+                for gol in gols:
+                    jogador = gol.assistido
+                    if jogador in jogadores:
+                        jogadores[jogador]['quantidade'] += 1
+                    else:
+                        jogadores[jogador] = {'jogador': jogador, 'quantidade': 1}
+
+                serializer_data = []
+                for jogador_info in jogadores.values():
+                    jogador = jogador_info['jogador']
+                    jogador_serializer = ListarJogadoresSerializer(jogador, context={'request': request})
+                    jogador_data = jogador_serializer.data
+                    quantidade_assistencia = jogador_info['quantidade']
+
+                    serializer_data.append({
+                        'quantidade': quantidade_assistencia,
+                        'jogador': jogador_data
+                    })
             elif category == 'cards':
                 cartoes = Cartao.objects.filter(jogo__in=jogos)
                 jogadores = {}
@@ -380,7 +409,7 @@ class Ranking(ListAPIView):
                     })
             else:
                 return Response(
-                    {'Erro': 'A categoria deve ser "goals" ou "cards".'},
+                    {'Erro': 'A categoria deve ser "goals", "assists" ou "cards".'},
                     status=HTTP_400_BAD_REQUEST,
                 )
             serializer_data = sorted(serializer_data, key=lambda x: x['quantidade'], reverse=True)[:limit]
