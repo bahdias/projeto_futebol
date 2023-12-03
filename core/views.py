@@ -148,6 +148,11 @@ class ListarTimeId(ListAPIView):
             elif id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
                 time = Time.objects.filter(nome__icontains=nome).first()
+                if time is None:
+                    return Response(
+                        [],
+                        status=HTTP_400_BAD_REQUEST,
+                    )
                 serializer = ListarTimesSerializer(
                     time, context={'request': request}
                 )
