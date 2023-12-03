@@ -62,7 +62,6 @@ class ListarJogadorId(ListAPIView):
                     nome__icontains=nome,
                     time=time
                 )
-
                 serializer = []
                 for jogador in jogadores_objects:
                     jogadores = ListarJogadoresSerializer(jogador, context={'request': request})
@@ -357,6 +356,27 @@ class Ranking(ListAPIView):
                         'quantidade': quantidade_gols,
                         'jogador': jogador_data
                     })
+            elif category == 'assists':
+                gols = Gol.objects.filter(jogo__in=jogos)
+                jogadores = {}
+                for gol in gols:
+                    jogador = gol.assistido
+                    if jogador in jogadores:
+                        jogadores[jogador]['quantidade'] += 1
+                    else:
+                        jogadores[jogador] = {'jogador': jogador, 'quantidade': 1}
+
+                serializer_data = []
+                for jogador_info in jogadores.values():
+                    jogador = jogador_info['jogador']
+                    jogador_serializer = ListarJogadoresSerializer(jogador, context={'request': request})
+                    jogador_data = jogador_serializer.data
+                    quantidade_assistencia = jogador_info['quantidade']
+
+                    serializer_data.append({
+                        'quantidade': quantidade_assistencia,
+                        'jogador': jogador_data
+                    })
             elif category == 'cards':
                 cartoes = Cartao.objects.filter(jogo__in=jogos)
                 jogadores = {}
@@ -380,7 +400,7 @@ class Ranking(ListAPIView):
                     })
             else:
                 return Response(
-                    {'Erro': 'A categoria deve ser "goals" ou "cards".'},
+                    {'Erro': 'A categoria deve ser "goals", "assists" ou "cards".'},
                     status=HTTP_400_BAD_REQUEST,
                 )
             serializer_data = sorted(serializer_data, key=lambda x: x['quantidade'], reverse=True)[:limit]
