@@ -71,7 +71,13 @@ class ListarJogadorId(ListAPIView):
                 return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
-                jogador = Jogador.objects.filter(nome__icontains=nome).first()
+                jogadores_objects = Jogador.objects.filter(nome__icontains=nome)
+                serializer = []
+                for jogador in jogadores_objects:
+                    jogadores = ListarJogadoresSerializer(jogador, context={'request': request})
+                    jogadores_data = jogadores.data
+                    serializer.append(jogadores_data)
+                return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(time_id_prefix):
                 time_id = id[len(time_id_prefix):].strip('"')
                 time = Time.objects.filter(pk=time_id).first()
@@ -146,15 +152,18 @@ class ListarTimeId(ListAPIView):
                 return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(nome_like_prefix):
                 nome = id[len(nome_like_prefix):].strip('"')
-                time = Time.objects.filter(nome__icontains=nome).first()
-                if time is None:
+                times_objects = Time.objects.filter(nome__icontains=nome)
+                if times_objects is None:
                     return Response(
                         [],
                         status=HTTP_400_BAD_REQUEST,
                     )
-                serializer = ListarTimesSerializer(
-                    time, context={'request': request}
-                )
+                serializer = []
+                for time in times_objects:
+                    times = ListarTimesSerializer(time, context={'request': request})
+                    times_data = times.data
+                    serializer.append(times_data)
+                return Response(serializer, status=HTTP_200_OK)
             elif id.startswith(torneio_id_prefix):
                 torneio_id = id[len(torneio_id_prefix):].strip('"')
                 torneio = Torneio.objects.filter(pk=torneio_id).first()
