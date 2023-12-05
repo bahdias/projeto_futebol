@@ -371,7 +371,7 @@ class Ranking(ListAPIView):
                 for gol in gols:
                     jogador = gol.assistido
                     if jogador is None:
-                        break
+                        continue
                     if jogador in jogadores:
                         jogadores[jogador]['quantidade'] += 1
                     else:
