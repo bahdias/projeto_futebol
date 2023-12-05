@@ -59,6 +59,7 @@ class ListarEstatisticaSerializer(serializers.ModelSerializer):
 
 class ListarTorneiosSerializer(serializers.ModelSerializer):
     estatisticas = ListarEstatisticaSerializer(many=True, read_only=True)
+
     class Meta:
         model = Torneio
         fields = '__all__'
@@ -77,6 +78,7 @@ class ListarTimesTorneiosSerializer(serializers.ModelSerializer):
         input_formats=['%d/%m/%Y %H:%M'],
         required=False
     )
+
     class Meta:
         model = Jogo
         fields = (

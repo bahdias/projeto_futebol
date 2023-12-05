@@ -58,22 +58,34 @@ class Jogo(models.Model):
         app_label = 'core'
 
 
-def pontuacao(quantidade):
-    if quantidade.gols_marcados > quantidade.gols_sofridos:
-        quantidade.vitorias += 1
-    elif quantidade.gols_marcados < quantidade.gols_sofridos:
-        quantidade.derrotas += 1
-    else:
-        quantidade.empates += 1
-    quantidade.pontuacao = (quantidade.vitorias * 3) + quantidade.empates
-    quantidade.save()
-
-
 @receiver(post_save, sender=Jogo)
 def atualizar_pontuacao(sender, instance, created, **kwargs):
+    from .gol import Gol
     if instance.acabou:
-        marcou, _ = Estatistica.objects.update_or_create(time=instance.time_casa)
-        pontuacao(marcou)
-
-        sofreu, _ = Estatistica.objects.update_or_create(time=instance.time_visitante)
-        pontuacao(sofreu)
+        time_casa_gols = Gol.objects.filter(jogo=instance, time_marcou=instance.time_casa).count()
+        time_visitante_gols = Gol.objects.filter(jogo=instance, time_marcou=instance.time_visitante).count()
+        if time_casa_gols > time_visitante_gols:
+            estatistica_casa, _ = Estatistica.objects.update_or_create(time=instance.time_casa)
+            estatistica_visitante, _ = Estatistica.objects.update_or_create(time=instance.time_visitante)
+            estatistica_casa.vitorias += 1
+            estatistica_casa.pontuacao = (estatistica_casa.vitorias * 3) + estatistica_casa.empates
+            estatistica_visitante.derrotas += 1
+            estatistica_visitante.save()
+            estatistica_casa.save()
+        elif time_casa_gols < time_visitante_gols:
+            estatistica_visitante, _ = Estatistica.objects.update_or_create(time=instance.time_visitante)
+            estatistica_casa, _ = Estatistica.objects.update_or_create(time=instance.time_casa)
+            estatistica_visitante.vitorias += 1
+            estatistica_visitante.pontuacao = (estatistica_visitante.vitorias * 3) + estatistica_visitante.empates
+            estatistica_casa.derrotas += 1
+            estatistica_visitante.save()
+            estatistica_casa.save()
+        else:
+            estatistica_visitante, _ = Estatistica.objects.update_or_create(time=instance.time_visitante)
+            estatistica_casa, _ = Estatistica.objects.update_or_create(time=instance.time_casa)
+            estatistica_visitante.empates += 1
+            estatistica_casa.empates += 1
+            estatistica_visitante.pontuacao = (estatistica_visitante.vitorias * 3) + estatistica_visitante.empates
+            estatistica_casa.pontuacao = (estatistica_casa.vitorias * 3) + estatistica_casa.empates
+            estatistica_visitante.save()
+            estatistica_casa.save()
